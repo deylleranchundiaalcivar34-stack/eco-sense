@@ -145,7 +145,7 @@ const Grifo3D = () => {
 
         {/* BOTÓN PANEL DE CONTROL */}
         <div className="flex flex-col sm:flex-row gap-4 pt-12 justify-center">
-          <button
+          <button className="cosmic-button"
             onClick={async () => {
               try {
                 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
