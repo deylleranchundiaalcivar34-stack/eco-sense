@@ -1,9 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Briefcase, Code, Activity, Zap, Globe, Shield, Cpu, BarChart } from "lucide-react";
-import { signInWithGoogle, signInWithGoogleRedirect } from "@/lib/firebase";
 import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Briefcase,
+  Code,
+  Activity,
+  Zap,
+  Globe,
+  Shield,
+  Cpu,
+  BarChart,
+} from "lucide-react";
+import { auth, provider, signInWithGoogle } from "@/lib/firebase";
+import { signInWithRedirect, getRedirectResult } from "firebase/auth";
 
 const Grifo3D = () => {
   const [isDark, setIsDark] = useState(false);
@@ -24,22 +35,28 @@ const Grifo3D = () => {
     if (document.querySelector("script[data-spline]")) return;
     const script = document.createElement("script");
     script.type = "module";
-    script.src = "https://unpkg.com/@splinetool/viewer@1.12.33/build/spline-viewer.js";
+    script.src =
+      "https://unpkg.com/@splinetool/viewer@1.12.33/build/spline-viewer.js";
     script.setAttribute("data-spline", "true");
     document.body.appendChild(script);
     return () => document.body.removeChild(script);
   }, []);
 
-  // Manejo del login
+  // Función de login universal (PC y móvil)
   const handleLogin = async () => {
     try {
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
       let user = null;
 
       if (isMobile) {
-        user = await signInWithGoogleRedirect(); // Login móvil con redirect
+        // Móvil: redirect
+        await signInWithRedirect(auth, provider);
+        const result = await getRedirectResult(auth);
+        user = result?.user || null;
       } else {
-        user = await signInWithGoogle(); // Login en PC con popup
+        // PC: popup
+        user = await signInWithGoogle();
       }
 
       if (user) navigate("/panel");
@@ -51,9 +68,15 @@ const Grifo3D = () => {
   };
 
   return (
-    <section id="grifo3d" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-12">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-12">
       {/* Fondo adaptado al theme */}
-      <div className={`absolute inset-0 transition-colors duration-500 ${isDark ? "bg-linear-to-br from-primary/20 via-background to-background" : "bg-linear-to-br from-primary/10 via-white to-white"}`} />
+      <div
+        className={`absolute inset-0 transition-colors duration-500 ${
+          isDark
+            ? "bg-linear-to-br from-primary/20 via-background to-background"
+            : "bg-linear-to-br from-primary/10 via-white to-white"
+        }`}
+      />
 
       {/* MODELO 3D */}
       <div className="relative z-10 w-full h-[75vh] sm:h-[85vh] md:h-[95vh] max-w-7xl mx-auto">
@@ -72,147 +95,57 @@ const Grifo3D = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {/* Card 1 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Code className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Tecnología Inteligente</h4>
-                <p className="text-sm text-muted-foreground">
-                  Sensor de flujo, electroválvula controlada por ESP32 y registro en tiempo real.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={Code} title="Tecnología Inteligente">
+            Sensor de flujo, electroválvula controlada por ESP32 y registro en
+            tiempo real.
+          </FeatureCard>
 
           {/* Card 2 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <User className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Ahorro y Sostenibilidad</h4>
-                <p className="text-sm text-muted-foreground">
-                  Optimiza el consumo de agua y evita desperdicios.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={User} title="Ahorro y Sostenibilidad">
+            Optimiza el consumo de agua y evita desperdicios.
+          </FeatureCard>
 
           {/* Card 3 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Briefcase className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Diseño Moderno</h4>
-                <p className="text-sm text-muted-foreground">
-                  Instalación simple y estética moderna que se adapta a cualquier espacio.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={Briefcase} title="Diseño Moderno">
+            Instalación simple y estética moderna que se adapta a cualquier
+            espacio.
+          </FeatureCard>
 
           {/* Card 4 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Activity className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Control Manual</h4>
-                <p className="text-sm text-muted-foreground">
-                  Posibilidad de activar y desactivar manualmente cuando sea necesario.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={Activity} title="Control Manual">
+            Posibilidad de activar y desactivar manualmente cuando sea necesario.
+          </FeatureCard>
 
           {/* Card 5 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Zap className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Monitoreo en Tiempo Real</h4>
-                <p className="text-sm text-muted-foreground">
-                  Observa el flujo y consumo de agua directamente desde la app o web.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={Zap} title="Monitoreo en Tiempo Real">
+            Observa el flujo y consumo de agua directamente desde la app o web.
+          </FeatureCard>
 
           {/* Card 6 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Globe className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Conectividad Global</h4>
-                <p className="text-sm text-muted-foreground">
-                  Conexión estable vía internet para controlar el grifo desde cualquier lugar.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={Globe} title="Conectividad Global">
+            Conexión estable vía internet para controlar el grifo desde cualquier
+            lugar.
+          </FeatureCard>
 
           {/* Card 7 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Seguridad Garantizada</h4>
-                <p className="text-sm text-muted-foreground">
-                  Evita accidentes y control de flujo seguro para niños y mascotas.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={Shield} title="Seguridad Garantizada">
+            Evita accidentes y control de flujo seguro para niños y mascotas.
+          </FeatureCard>
 
           {/* Card 8 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Cpu className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Actualizaciones Firmware</h4>
-                <p className="text-sm text-muted-foreground">
-                  El grifo se mantiene actualizado con nuevas funciones y mejoras.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={Cpu} title="Actualizaciones Firmware">
+            El grifo se mantiene actualizado con nuevas funciones y mejoras.
+          </FeatureCard>
 
           {/* Card 9 */}
-          <div className="gradient-border p-6 card-hover">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <BarChart className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-lg font-semibold">Estadísticas Detalladas</h4>
-                <p className="text-sm text-muted-foreground">
-                  Visualiza consumo diario, semanal y mensual para un control eficiente.
-                </p>
-              </div>
-            </div>
-          </div>
+          <FeatureCard icon={BarChart} title="Estadísticas Detalladas">
+            Visualiza consumo diario, semanal y mensual para un control eficiente.
+          </FeatureCard>
         </div>
 
         {/* BOTÓN PANEL DE CONTROL */}
         <div className="flex flex-col sm:flex-row gap-4 pt-12 justify-center">
-          <button
-            className="cosmic-button"
-            onClick={handleLogin}
-          >
+          <button className="cosmic-button" onClick={handleLogin}>
             Panel de Control
           </button>
         </div>
@@ -220,5 +153,20 @@ const Grifo3D = () => {
     </section>
   );
 };
+
+// Componente reutilizable para las cards
+const FeatureCard = ({ icon: Icon, title, children }) => (
+  <div className="gradient-border p-6 card-hover">
+    <div className="flex items-start gap-4">
+      <div className="p-3 rounded-full bg-primary/10">
+        <Icon className="h-6 w-6 text-primary" />
+      </div>
+      <div className="text-left">
+        <h4 className="text-lg font-semibold">{title}</h4>
+        <p className="text-sm text-muted-foreground">{children}</p>
+      </div>
+    </div>
+  </div>
+);
 
 export default Grifo3D;
