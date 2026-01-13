@@ -9,18 +9,17 @@ import { Zap, Globe, Cpu, Activity } from "lucide-react";
 const PanelControl = () => {
   const [isGrifoOn, setIsGrifoOn] = useState(false);
   const [waterUsed, setWaterUsed] = useState(0);
-  const [loading, setLoading] = useState(true); // nuevo estado de carga
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Verificar login y escuchar Firebase
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        setLoading(false); // ya revisó y no hay usuario
-        return navigate("/");
+        setLoading(false);
+        return navigate("/"); // no logueado → inicio
       }
 
-      // Usuario logueado, obtener datos
+      // Usuario logueado → obtener datos
       const userRef = ref(db, `users/${user.uid}`);
       onValue(userRef, snapshot => {
         const data = snapshot.val();
@@ -28,17 +27,16 @@ const PanelControl = () => {
           setIsGrifoOn(data.grifoState ?? false);
           setWaterUsed(data.waterUsed ?? 0);
         } else {
-          // Inicializa el nodo si no existe
+          // Inicializa si no existe
           set(ref(db, `users/${user.uid}`), { grifoState: false, waterUsed: 0 });
         }
-        setLoading(false); // datos cargados
+        setLoading(false);
       });
     });
 
     return () => unsubscribe();
   }, [navigate]);
 
-  // Enviar comando al ESP32
   const sendCommandToESP32 = async (turnOn) => {
     try {
       await fetch(`https://TU_ESP32_IP/comando`, {
@@ -59,7 +57,6 @@ const PanelControl = () => {
     if (user) set(ref(db, `users/${user.uid}/grifoState`), newState);
   };
 
-  // Mostrar pantalla de carga mientras Firebase verifica
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
@@ -103,7 +100,7 @@ const PanelControl = () => {
           </div>
         </div>
 
-        {/* Estadísticas / info adicional */}
+        {/* Estadísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
           <div className="p-6 rounded-xl flex items-center gap-4 bg-gray-800 border border-gray-700">
             <Zap className="h-8 w-8 text-primary" />

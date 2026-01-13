@@ -145,7 +145,30 @@ const Grifo3D = () => {
 
         {/* BOTÓN PANEL DE CONTROL */}
         <div className="flex flex-col sm:flex-row gap-4 pt-12 justify-center">
-          <button className="cosmic-button" onClick={handleLogin}>
+          <button
+            className="cosmic-button"
+            onClick={async () => {
+              try {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                  // En móviles usamos redirect
+                  const { signInWithRedirect } = await import("firebase/auth");
+                  await signInWithRedirect(auth, provider); 
+                  // Aquí NO hacemos navigate todavía
+                  // Firebase manejará la redirección y volverás logeado
+                } else {
+                  // En PC usamos popup normal
+                  const user = await signInWithGoogle();
+                  if (user) navigate("/panel");
+                  else alert("No se pudo iniciar sesión. Intenta nuevamente.");
+                }
+              } catch (err) {
+                console.error(err);
+                alert("Error al iniciar sesión. Revisa la consola.");
+              }
+            }}
+          >
             Panel de Control
           </button>
         </div>

@@ -1,0 +1,21 @@
+# Archivos de texto comunes
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Archivos binarios no tocar
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Forzar que pnpm lockfiles tengan LF
+pnpm-lock.yaml text eol=lf
+pnpm-workspace.yaml text eol=lf
