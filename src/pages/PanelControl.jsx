@@ -9,13 +9,18 @@ import { Zap, Globe, Cpu, Activity } from "lucide-react";
 const PanelControl = () => {
   const [isGrifoOn, setIsGrifoOn] = useState(false);
   const [waterUsed, setWaterUsed] = useState(0);
+  const [loading, setLoading] = useState(true); // nuevo estado de carga
   const navigate = useNavigate();
 
   // Verificar login y escuchar Firebase
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      if (!user) return navigate("/");
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        setLoading(false); // ya revisó y no hay usuario
+        return navigate("/");
+      }
 
+      // Usuario logueado, obtener datos
       const userRef = ref(db, `users/${user.uid}`);
       onValue(userRef, snapshot => {
         const data = snapshot.val();
@@ -26,6 +31,7 @@ const PanelControl = () => {
           // Inicializa el nodo si no existe
           set(ref(db, `users/${user.uid}`), { grifoState: false, waterUsed: 0 });
         }
+        setLoading(false); // datos cargados
       });
     });
 
@@ -52,6 +58,15 @@ const PanelControl = () => {
     const user = auth.currentUser;
     if (user) set(ref(db, `users/${user.uid}/grifoState`), newState);
   };
+
+  // Mostrar pantalla de carga mientras Firebase verifica
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
+        <p>Cargando Panel de Control...</p>
+      </div>
+    );
+  }
 
   return (
     <section className="dark min-h-screen flex flex-col items-center justify-center px-6 py-12 overflow-hidden bg-gray-900 text-white">
