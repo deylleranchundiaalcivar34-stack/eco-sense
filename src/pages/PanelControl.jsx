@@ -12,14 +12,14 @@ const PanelControl = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Verificar login y obtener datos
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
       if (!user) {
         setLoading(false);
         return navigate("/"); // no logueado → inicio
       }
 
-      // Usuario logueado → obtener datos
       const userRef = ref(db, `users/${user.uid}`);
       onValue(userRef, snapshot => {
         const data = snapshot.val();
@@ -27,7 +27,6 @@ const PanelControl = () => {
           setIsGrifoOn(data.grifoState ?? false);
           setWaterUsed(data.waterUsed ?? 0);
         } else {
-          // Inicializa si no existe
           set(ref(db, `users/${user.uid}`), { grifoState: false, waterUsed: 0 });
         }
         setLoading(false);
@@ -42,7 +41,7 @@ const PanelControl = () => {
       await fetch(`https://TU_ESP32_IP/comando`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ grifoOn: turnOn })
+        body: JSON.stringify({ grifoOn: turnOn }),
       });
     } catch (err) {
       console.error("Error enviando comando al ESP32:", err);
@@ -79,7 +78,6 @@ const PanelControl = () => {
               {isGrifoOn ? "ENCENDIDO" : "APAGADO"}
             </span>
           </div>
-
           <button
             onClick={toggleGrifo}
             className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-300 ${isGrifoOn ? "bg-red-600" : "bg-green-600"}`}
@@ -109,7 +107,6 @@ const PanelControl = () => {
               <p className="text-sm text-gray-300">Observa el flujo y consumo de agua desde cualquier lugar.</p>
             </div>
           </div>
-
           <div className="p-6 rounded-xl flex items-center gap-4 bg-gray-800 border border-gray-700">
             <Globe className="h-8 w-8 text-primary" />
             <div>
@@ -117,7 +114,6 @@ const PanelControl = () => {
               <p className="text-sm text-gray-300">Controla tu grifo desde la web o tu celular.</p>
             </div>
           </div>
-
           <div className="p-6 rounded-xl flex items-center gap-4 bg-gray-800 border border-gray-700">
             <Activity className="h-8 w-8 text-primary" />
             <div>
@@ -125,7 +121,6 @@ const PanelControl = () => {
               <p className="text-sm text-gray-300">Activa o desactiva manualmente cuando necesites.</p>
             </div>
           </div>
-
           <div className="p-6 rounded-xl flex items-center gap-4 bg-gray-800 border border-gray-700">
             <Cpu className="h-8 w-8 text-primary" />
             <div>
