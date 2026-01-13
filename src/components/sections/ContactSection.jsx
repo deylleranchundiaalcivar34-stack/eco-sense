@@ -82,7 +82,7 @@ const ContactSection = () => {
 
               <div>
                 <span className="font-medium text-foreground">📧 Correo:</span>
-                <p className="text-foreground/70">deylleranchundiaalcivar34@gmail.com</p>
+                <p className="text-foreground/70">grifoecosense@gmail.com</p>
               </div>
 
               <div>
