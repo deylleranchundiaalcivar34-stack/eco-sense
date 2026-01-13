@@ -1,8 +1,9 @@
 // src/lib/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getDatabase } from "firebase/database"; // <-- Importa Realtime DB
+import { getDatabase } from "firebase/database";
 
+// Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCEZy5trxa8KWOj46NAvEm9rke8gEhJ4N0",
   authDomain: "esp32-control-01.firebaseapp.com",
@@ -13,15 +14,12 @@ const firebaseConfig = {
   appId: "1:171300655288:web:b36ffd0c46fc0914aaa44d"
 };
 
-// Inicializar app Firebase
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 
 // Autenticación
 export const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-
-// Realtime Database
-export const db = getDatabase(app); // <-- Exporta db
 
 // Función para iniciar sesión con Google
 export const signInWithGoogle = async () => {
@@ -33,3 +31,6 @@ export const signInWithGoogle = async () => {
     return null;
   }
 };
+
+// Realtime Database
+export const db = getDatabase(app);
