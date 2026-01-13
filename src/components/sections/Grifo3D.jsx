@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { User, Briefcase, Code, Activity, Zap, Globe, Shield, Cpu, BarChart } from "lucide-react";
-import { signInWithGoogle, auth, provider } from "@/lib/firebase";
+import { signInWithGoogle, signInWithGoogleRedirect } from "@/lib/firebase";
 import { useNavigate } from "react-router-dom";
 
 const Grifo3D = () => {
@@ -29,6 +29,26 @@ const Grifo3D = () => {
     document.body.appendChild(script);
     return () => document.body.removeChild(script);
   }, []);
+
+  // Manejo del login
+  const handleLogin = async () => {
+    try {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      let user = null;
+
+      if (isMobile) {
+        user = await signInWithGoogleRedirect(); // Login móvil con redirect
+      } else {
+        user = await signInWithGoogle(); // Login en PC con popup
+      }
+
+      if (user) navigate("/panel");
+      else alert("No se pudo iniciar sesión. Intenta nuevamente.");
+    } catch (err) {
+      console.error(err);
+      alert("Error al iniciar sesión. Revisa la consola.");
+    }
+  };
 
   return (
     <section id="grifo3d" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-12">
@@ -187,36 +207,11 @@ const Grifo3D = () => {
           </div>
         </div>
 
-        { /* BOTÓN PANEL DE CONTROL */}
+        {/* BOTÓN PANEL DE CONTROL */}
         <div className="flex flex-col sm:flex-row gap-4 pt-12 justify-center">
           <button
             className="cosmic-button"
-            onClick={async () => {
-              try {
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-                let user = null;
-
-                if (isMobile) {
-                  // En móviles usamos redirect
-                  const { signInWithRedirect, getRedirectResult } = await import("firebase/auth");
-                  await signInWithRedirect(auth, provider); // redirige al login de Google
-                  
-                  // Cuando vuelva de Google
-                  const result = await getRedirectResult(auth);
-                  user = result?.user || null;
-                } else {
-                  // En PC usamos popup normal
-                  user = await signInWithGoogle();
-                }
-
-                if (user) navigate("/panel");
-                else alert("No se pudo iniciar sesión. Intenta nuevamente.");
-              } catch (err) {
-                console.error(err);
-                alert("Error al iniciar sesión. Revisa la consola.");
-              }
-            }}
+            onClick={handleLogin}
           >
             Panel de Control
           </button>
