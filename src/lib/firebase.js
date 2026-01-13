@@ -1,6 +1,12 @@
 // src/lib/firebase.js
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithRedirect, 
+  getRedirectResult 
+} from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 // Configuración de Firebase
@@ -21,16 +27,30 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Función para iniciar sesión con Google
+// Realtime Database
+export const db = getDatabase(app);
+
+// Función para detectar móvil
+const isMobile = () => /Mobi|Android/i.test(navigator.userAgent);
+
+// Función para iniciar sesión con Google adaptativa
 export const signInWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, provider);
-    return result.user;
+    if (isMobile()) {
+      // Si es móvil, usar redirect
+      await signInWithRedirect(auth, provider);
+      // Luego de la redirección, esto puede obtener el resultado
+      const result = await getRedirectResult(auth);
+      return result?.user ?? null;
+    } else {
+      // Si es escritorio, usar popup
+      const result = await signInWithPopup(auth, provider);
+      return result.user;
+    }
   } catch (error) {
     console.error("Error al iniciar sesión con Google:", error);
     return null;
   }
 };
 
-// Realtime Database
-export const db = getDatabase(app);
+export { provider }; 
