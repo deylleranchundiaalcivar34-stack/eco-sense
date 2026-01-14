@@ -6,7 +6,9 @@ import PanelLayout from "@/pages/PanelLayout.jsx";
 
 // Pages
 import Home from "@/pages/Home.jsx";
+import Login from "@/pages/Login.jsx";
 import PanelControl from "@/pages/PanelControl.jsx";
+import NotFound from "@/pages/NotFound.jsx";  // ✅ Importamos tu NotFound.jsx
 
 function App() {
   return (
@@ -17,20 +19,16 @@ function App() {
           <Route index element={<Home />} />
         </Route>
 
+        {/* Página de Login (sin Navbar / Footer) */}
+        <Route path="/login" element={<Login />} />
+
         {/* Panel de Control sin Navbar / Footer */}
         <Route path="/panel" element={<PanelLayout />}>
           <Route index element={<PanelControl />} />
         </Route>
 
-        {/* Fallback */}
-        <Route
-          path="*"
-          element={
-            <div className="text-center mt-20 text-3xl font-bold">
-              Página no encontrada
-            </div>
-          }
-        />
+        {/* Fallback / Página no encontrada */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
