@@ -17,6 +17,7 @@ import { auth, signInWithEmail } from "@/lib/firebase"; // función para login c
 
 const Grifo3D = () => {
   const [isDark, setIsDark] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
 
   // Detectar cambio de tema (dark / light)
@@ -29,17 +30,25 @@ const Grifo3D = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Cargar Spline Viewer
+  // Detectar si es dispositivo móvil
   useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  }, []);
+
+  // Cargar Spline Viewer solo si NO es móvil
+  useEffect(() => {
+    if (isMobile) return;
     if (document.querySelector("script[data-spline]")) return;
+
     const script = document.createElement("script");
     script.type = "module";
     script.src =
       "https://unpkg.com/@splinetool/viewer@1.12.33/build/spline-viewer.js";
     script.setAttribute("data-spline", "true");
     document.body.appendChild(script);
+
     return () => document.body.removeChild(script);
-  }, []);
+  }, [isMobile]);
 
   // Redirigir al Login para Panel de Control
   const goToPanel = () => {
@@ -47,7 +56,10 @@ const Grifo3D = () => {
   };
 
   return (
-    <section id="grifo3d" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-12">
+    <section
+      id="grifo3d"
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-12"
+    >
       {/* Fondo adaptado al theme */}
       <div
         className={`absolute inset-0 transition-colors duration-500 ${
@@ -57,13 +69,21 @@ const Grifo3D = () => {
         }`}
       />
 
-      {/* MODELO 3D */}
-      <div className="relative z-10 w-full h-[75vh] sm:h-[85vh] md:h-[95vh] max-w-7xl mx-auto">
-        <spline-viewer
-          className="w-full h-full"
-          loading-anim-type="none"
-          url="https://prod.spline.design/L7rCrLTSL7X5KkH9/scene.splinecode"
-        />
+      {/* MODELO 3D o IMAGEN en móvil */}
+      <div className="relative z-10 w-full h-[75vh] sm:h-[85vh] md:h-[95vh] max-w-7xl mx-auto flex items-center justify-center">
+        {isMobile ? (
+          <img
+            src="/foto_grifo_celular.png" // ⚡ Aquí colocas tu imagen optimizada para móvil
+            alt="Grifo Inteligente EcoSense"
+            className="w-full h-full object-contain rounded-xl shadow-lg"
+          />
+        ) : (
+          <spline-viewer
+            className="w-full h-full"
+            loading-anim-type="none"
+            url="https://prod.spline.design/L7rCrLTSL7X5KkH9/scene.splinecode"
+          />
+        )}
       </div>
 
       {/* CARACTERÍSTICAS */}
@@ -77,39 +97,31 @@ const Grifo3D = () => {
             Sensor de flujo, electroválvula controlada por ESP32 y registro en
             tiempo real.
           </FeatureCard>
-
           <FeatureCard icon={User} title="Ahorro y Sostenibilidad">
             Optimiza el consumo de agua y evita desperdicios.
           </FeatureCard>
-
           <FeatureCard icon={Briefcase} title="Diseño Moderno">
             Instalación simple y estética moderna que se adapta a cualquier
             espacio.
           </FeatureCard>
-
           <FeatureCard icon={Activity} title="Control Manual">
             Posibilidad de activar y desactivar manualmente cuando sea necesario.
           </FeatureCard>
-
           <FeatureCard icon={Zap} title="Monitoreo en Tiempo Real">
             Observa el flujo y consumo de agua directamente desde la app o web.
           </FeatureCard>
-
           <FeatureCard icon={Globe} title="Conectividad Global">
             Conexión estable vía internet para controlar el grifo desde cualquier
             lugar.
           </FeatureCard>
-
           <FeatureCard icon={Shield} title="Seguridad Garantizada">
             Evita accidentes y control de flujo seguro para niños y mascotas.
           </FeatureCard>
-
           <FeatureCard icon={Cpu} title="Actualizaciones Firmware">
             El grifo se mantiene actualizado con nuevas funciones y mejoras.
           </FeatureCard>
-
           <FeatureCard icon={BarChart} title="Estadísticas Detalladas">
-            Visualiza consumo diario, semanal y mensual para un control eficiente.
+            Visualiza consumo diario para un control eficiente.
           </FeatureCard>
         </div>
 

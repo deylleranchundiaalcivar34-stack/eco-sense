@@ -9,6 +9,7 @@ import { Zap, Globe, Cpu, Activity } from "lucide-react";
 const PanelControl = () => {
   const [isGrifoOn, setIsGrifoOn] = useState(false);
   const [waterUsed, setWaterUsed] = useState(0);
+  const [lastWaterUsed, setLastWaterUsed] = useState(0); // último registro
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -23,12 +24,34 @@ const PanelControl = () => {
       const userRef = ref(db, `users/${user.uid}`);
       onValue(userRef, snapshot => {
         const data = snapshot.val();
-        if (data) {
-          setIsGrifoOn(data.grifoState ?? false);
-          setWaterUsed(data.waterUsed ?? 0);
-        } else {
-          set(ref(db, `users/${user.uid}`), { grifoState: false, waterUsed: 0 });
+
+        const now = Date.now();
+        const lastUpdate = data?.lastUpdate ?? now;
+        const oneDay = 24 * 60 * 60 * 1000; // 24h en ms
+
+        let updatedWaterUsed = data?.waterUsed ?? 0;
+        let updatedLastUpdate = lastUpdate;
+        let updatedLastWaterUsed = data?.lastWaterUsed ?? 0;
+
+        if (now - lastUpdate >= oneDay) {
+          // Guardamos el último registro antes de reiniciar
+          updatedLastWaterUsed = updatedWaterUsed;
+
+          // Reinicia consumo diario
+          updatedWaterUsed = 0;
+          updatedLastUpdate = now;
+
+          set(ref(db, `users/${user.uid}`), {
+            ...data,
+            waterUsed: 0,
+            lastWaterUsed: updatedLastWaterUsed,
+            lastUpdate: now,
+          });
         }
+
+        setIsGrifoOn(data?.grifoState ?? false);
+        setWaterUsed(updatedWaterUsed);
+        setLastWaterUsed(updatedLastWaterUsed);
         setLoading(false);
       });
     });
@@ -48,18 +71,6 @@ const PanelControl = () => {
     }
   };
 
-  const PanelCard = ({ icon: Icon, title, description, centered }) => (
-  <div
-    className={`p-6 rounded-xl bg-gray-800 border border-gray-700 flex flex-col gap-4 ${
-      centered ? "items-center text-center" : "items-start text-left"
-    }`}
-  >
-    <Icon className="h-8 w-8 text-primary" />
-    <h4 className="font-semibold text-lg">{title}</h4>
-    <p className="text-sm text-gray-300">{description}</p>
-  </div>
-  );
-
   const toggleGrifo = () => {
     const newState = !isGrifoOn;
     setIsGrifoOn(newState);
@@ -76,10 +87,21 @@ const PanelControl = () => {
     );
   }
 
+  const PanelCard = ({ icon: Icon, title, description, centered }) => (
+    <div
+      className={`p-6 rounded-xl bg-gray-800 border border-gray-700 flex flex-col gap-4 ${
+        centered ? "items-center text-center" : "items-start text-left"
+      }`}
+    >
+      <Icon className="h-8 w-8 text-primary" />
+      <h4 className="font-semibold text-lg">{title}</h4>
+      <p className="text-sm text-gray-300">{description}</p>
+    </div>
+  );
+
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-6 py-12 overflow-hidden bg-gray-900 text-white">
       <div className="max-w-5xl w-full flex flex-col items-center gap-8">
-        
         <h1 className="text-4xl font-bold text-primary">Panel de Control</h1>
         <p className="text-lg text-gray-300 text-center mb-6">
           Bienvenido al panel de administración del Grifo Inteligente EcoSense.
@@ -90,14 +112,20 @@ const PanelControl = () => {
         <div className="w-full p-6 rounded-xl bg-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4 border border-primary/30">
           <div>
             <span className="font-semibold">Estado del grifo:</span>
-            <span className={`ml-2 font-bold ${isGrifoOn ? "text-green-400" : "text-red-400"}`}>
+            <span
+              className={`ml-2 font-bold ${
+                isGrifoOn ? "text-green-400" : "text-red-400"
+              }`}
+            >
               {isGrifoOn ? "ENCENDIDO" : "APAGADO"}
             </span>
           </div>
           <button
             onClick={toggleGrifo}
             className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-300 ${
-              isGrifoOn ? "bg-red-600 hover:bg-red-500" : "bg-green-600 hover:bg-green-500"
+              isGrifoOn
+                ? "bg-red-600 hover:bg-red-500"
+                : "bg-green-600 hover:bg-green-500"
             }`}
           >
             {isGrifoOn ? "APAGAR GRIFO" : "ENCENDER GRIFO"}
@@ -106,14 +134,19 @@ const PanelControl = () => {
 
         {/* Consumo de agua */}
         <div className="w-full p-6 rounded-xl bg-gray-800 flex flex-col gap-4 border border-primary/30">
-          <h2 className="text-2xl font-semibold">Consumo de Agua</h2>
-          <p>Has usado <strong>{waterUsed.toFixed(1)}</strong> litros</p>
+          <h2 className="text-2xl font-semibold">Consumo de Agua (24h)</h2>
+          <p>
+            Has usado <strong>{waterUsed.toFixed(1)}</strong> litros
+          </p>
           <div className="w-full h-4 rounded-full bg-gray-700 overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-500"
               style={{ width: `${Math.min((waterUsed / 10) * 100, 100)}%` }}
             />
           </div>
+          <p className="text-sm text-gray-400 mt-2">
+            Último registro: <strong>{lastWaterUsed.toFixed(1)}</strong> litros
+          </p>
         </div>
 
         {/* Estadísticas / Funcionalidades */}
@@ -155,16 +188,5 @@ const PanelControl = () => {
     </section>
   );
 };
-
-// Componente para las cards del panel
-const PanelCard = ({ icon: Icon, title, description }) => (
-  <div className="p-6 rounded-xl flex items-center gap-4 bg-gray-800 border border-gray-700">
-    <Icon className="h-8 w-8 text-primary" />
-    <div>
-      <h4 className="font-semibold text-lg">{title}</h4>
-      <p className="text-sm text-gray-300">{description}</p>
-    </div>
-  </div>
-);
 
 export default PanelControl;
