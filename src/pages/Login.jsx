@@ -40,9 +40,9 @@ const Login = () => {
   };
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-gray-900">
+    <section className="min-h-screen flex flex-col items-center justify-start px-4 py-12 overflow-y-auto overflow-x-hidden bg-gray-900 text-white">
       
-      <div className="w-full max-w-md p-8 bg-gray-800 rounded-2xl shadow-xl border border-primary/30 flex flex-col gap-6">
+      <div className="max-w-md mx-auto w-full p-8 bg-gray-800 rounded-2xl shadow-xl border border-primary/30 flex flex-col gap-6">
         <h2 className="text-3xl font-bold text-center text-primary">
           Panel de Control EcoSense
         </h2>
