@@ -101,7 +101,7 @@ const PanelControl = () => {
 
   return (
     <section className="min-h-screen flex flex-col items-center justify-start px-4 py-12 overflow-y-auto overflow-x-hidden bg-gray-900 text-white">
-      <div className="max-w-md mx-auto w-full flex flex-col items-center gap-8">
+      <div className="w-full flex flex-col items-center gap-8">
         <h1 className="text-4xl font-bold text-primary">Panel de Control</h1>
         <p className="text-lg text-gray-300 text-center mb-6">
           Bienvenido al panel de administración del Grifo Inteligente EcoSense.
