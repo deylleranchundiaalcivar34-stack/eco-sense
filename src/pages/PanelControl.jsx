@@ -1,33 +1,170 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { ref, get, set } from "firebase/database";
+import { auth, db } from "@/lib/firebase";
+import { ref, set, onValue } from "firebase/database";
+import { useNavigate } from "react-router-dom";
+import { Zap, Globe, Cpu, Activity } from "lucide-react";
 
 const PanelControl = () => {
-  const [grifoState, setGrifoState] = useState(false);
+  const [isGrifoOn, setIsGrifoOn] = useState(false);
+  const [waterUsed, setWaterUsed] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const toggleGrifo = async () => {
-    const newState = !grifoState;
-    setGrifoState(newState);
-    await set(ref(db, "/grifoState"), newState);
+  // Verificar login y obtener datos
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (!user) {
+        setLoading(false);
+        return navigate("/login"); // si no está logueado → login
+      }
+
+      const userRef = ref(db, `users/${user.uid}`);
+      onValue(userRef, snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          setIsGrifoOn(data.grifoState ?? false);
+          setWaterUsed(data.waterUsed ?? 0);
+        } else {
+          set(ref(db, `users/${user.uid}`), { grifoState: false, waterUsed: 0 });
+        }
+        setLoading(false);
+      });
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const sendCommandToESP32 = async (turnOn) => {
+    try {
+      await fetch(`https://TU_ESP32_IP/comando`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ grifoOn: turnOn }),
+      });
+    } catch (err) {
+      console.error("Error enviando comando al ESP32:", err);
+    }
   };
 
-  useEffect(() => {
-    const fetchState = async () => {
-      const snapshot = await get(ref(db, "/grifoState"));
-      if (snapshot.exists()) setGrifoState(snapshot.val());
-    };
-    fetchState();
-  }, []);
+  const PanelCard = ({ icon: Icon, title, description, centered }) => (
+  <div
+    className={`p-6 rounded-xl bg-gray-800 border border-gray-700 flex flex-col gap-4 ${
+      centered ? "items-center text-center" : "items-start text-left"
+    }`}
+  >
+    <Icon className="h-8 w-8 text-primary" />
+    <h4 className="font-semibold text-lg">{title}</h4>
+    <p className="text-sm text-gray-300">{description}</p>
+  </div>
+  );
+
+  const toggleGrifo = () => {
+    const newState = !isGrifoOn;
+    setIsGrifoOn(newState);
+    sendCommandToESP32(newState);
+    const user = auth.currentUser;
+    if (user) set(ref(db, `users/${user.uid}/grifoState`), newState);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">
+        <p>Cargando Panel de Control...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 gap-6">
-      <h2 className="text-3xl font-bold mb-4">Panel de Control</h2>
-      <button className="cosmic-button" onClick={toggleGrifo}>
-        {grifoState ? "Apagar Grifo" : "Encender Grifo"}
-      </button>
-      <p>Estado actual: {grifoState ? "ENCENDIDO" : "APAGADO"}</p>
-    </div>
+    <section className="min-h-screen flex flex-col items-center justify-center px-6 py-12 overflow-hidden bg-gray-900 text-white">
+      <div className="max-w-5xl w-full flex flex-col items-center gap-8">
+        
+        <h1 className="text-4xl font-bold text-primary">Panel de Control</h1>
+        <p className="text-lg text-gray-300 text-center mb-6">
+          Bienvenido al panel de administración del Grifo Inteligente EcoSense.
+          Controla el flujo de agua, monitorea consumo y gestiona tu ESP32 desde aquí.
+        </p>
+
+        {/* Estado del grifo */}
+        <div className="w-full p-6 rounded-xl bg-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4 border border-primary/30">
+          <div>
+            <span className="font-semibold">Estado del grifo:</span>
+            <span className={`ml-2 font-bold ${isGrifoOn ? "text-green-400" : "text-red-400"}`}>
+              {isGrifoOn ? "ENCENDIDO" : "APAGADO"}
+            </span>
+          </div>
+          <button
+            onClick={toggleGrifo}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors duration-300 ${
+              isGrifoOn ? "bg-red-600 hover:bg-red-500" : "bg-green-600 hover:bg-green-500"
+            }`}
+          >
+            {isGrifoOn ? "APAGAR GRIFO" : "ENCENDER GRIFO"}
+          </button>
+        </div>
+
+        {/* Consumo de agua */}
+        <div className="w-full p-6 rounded-xl bg-gray-800 flex flex-col gap-4 border border-primary/30">
+          <h2 className="text-2xl font-semibold">Consumo de Agua</h2>
+          <p>Has usado <strong>{waterUsed.toFixed(1)}</strong> litros</p>
+          <div className="w-full h-4 rounded-full bg-gray-700 overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-500"
+              style={{ width: `${Math.min((waterUsed / 10) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Estadísticas / Funcionalidades */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+          <PanelCard
+            icon={Zap}
+            title="Monitoreo en Tiempo Real"
+            description="Observa el flujo y consumo de agua desde cualquier lugar."
+            centered
+          />
+          <PanelCard
+            icon={Globe}
+            title="Conectividad Global"
+            description="Controla tu grifo desde la web o tu celular."
+            centered
+          />
+          <PanelCard
+            icon={Activity}
+            title="Control Manual"
+            description="Activa o desactiva manualmente cuando necesites."
+            centered
+          />
+          <PanelCard
+            icon={Cpu}
+            title="Actualizaciones"
+            description="El grifo se mantiene actualizado con nuevas funciones."
+            centered
+          />
+        </div>
+
+        {/* Botón de retorno */}
+        <button
+          onClick={() => navigate("/")}
+          className="mt-8 px-6 py-3 rounded-lg font-semibold bg-primary text-white hover:bg-primary/90 transition-colors"
+        >
+          ← Volver al inicio
+        </button>
+      </div>
+    </section>
   );
 };
+
+// Componente para las cards del panel
+const PanelCard = ({ icon: Icon, title, description }) => (
+  <div className="p-6 rounded-xl flex items-center gap-4 bg-gray-800 border border-gray-700">
+    <Icon className="h-8 w-8 text-primary" />
+    <div>
+      <h4 className="font-semibold text-lg">{title}</h4>
+      <p className="text-sm text-gray-300">{description}</p>
+    </div>
+  </div>
+);
 
 export default PanelControl;
