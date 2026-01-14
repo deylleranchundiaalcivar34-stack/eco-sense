@@ -49,7 +49,7 @@ const PanelControl = () => {
           });
         }
 
-        setIsGrifoOn(data?.grifoState ?? false);
+        setIsGrifoOn(data?.valvulaAbierta ?? data?.grifoState ?? false);
         setWaterUsed(updatedWaterUsed);
         setLastWaterUsed(updatedLastWaterUsed);
         setLoading(false);
@@ -59,6 +59,7 @@ const PanelControl = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Envía comando al ESP32
   const sendCommandToESP32 = async (turnOn) => {
     try {
       await fetch(`https://TU_ESP32_IP/comando`, {
@@ -71,12 +72,22 @@ const PanelControl = () => {
     }
   };
 
+  // Toggle de la válvula / grifo
   const toggleGrifo = () => {
     const newState = !isGrifoOn;
     setIsGrifoOn(newState);
     sendCommandToESP32(newState);
+
     const user = auth.currentUser;
-    if (user) set(ref(db, `users/${user.uid}/grifoState`), newState);
+    if (user) {
+      // Actualiza estado de la válvula
+      set(ref(db, `users/${user.uid}/valvulaAbierta`), newState);
+
+      // Si se apaga el grifo, guarda último valor de litros
+      if (!newState) {
+        set(ref(db, `users/${user.uid}/lastWaterUsed`), waterUsed);
+      }
+    }
   };
 
   if (loading) {
@@ -117,7 +128,7 @@ const PanelControl = () => {
                 isGrifoOn ? "text-green-400" : "text-red-400"
               }`}
             >
-              {isGrifoOn ? "ENCENDIDO" : "APAGADO"}
+              {isGrifoOn ? "ABIERTO" : "CERRADO"}
             </span>
           </div>
           <button
@@ -128,7 +139,7 @@ const PanelControl = () => {
                 : "bg-green-600 hover:bg-green-500"
             }`}
           >
-            {isGrifoOn ? "APAGAR GRIFO" : "ENCENDER GRIFO"}
+            {isGrifoOn ? "CERRAR GRIFO" : "ABRIR GRIFO"}
           </button>
         </div>
 
