@@ -101,8 +101,8 @@ const PanelControl = () => {
 
   return (
     <section className="min-h-screen flex flex-col items-center justify-start px-4 py-12 overflow-y-auto overflow-x-hidden bg-gray-900 text-white">
-      <div className="w-full flex flex-col items-center gap-8">
-        <h1 className="text-4xl font-bold text-primary">Panel de Control</h1>
+      <div className="w-full max-w-md flex flex-col items-center gap-8">
+        <h1 className="text-4xl font-bold text-primary text-center">Panel de Control</h1>
         <p className="text-lg text-gray-300 text-center mb-6">
           Bienvenido al panel de administración del Grifo Inteligente EcoSense.
           Controla el flujo de agua, monitorea consumo y gestiona tu ESP32 desde aquí.
@@ -134,17 +134,15 @@ const PanelControl = () => {
 
         {/* Consumo de agua */}
         <div className="w-full p-6 rounded-xl bg-gray-800 flex flex-col gap-4 border border-primary/30">
-          <h2 className="text-2xl font-semibold">Consumo de Agua (24h)</h2>
-          <p>
-            Has usado <strong>{waterUsed.toFixed(1)}</strong> litros
-          </p>
+          <h2 className="text-2xl font-semibold text-center">Consumo de Agua (24h)</h2>
+          <p className="text-center">Has usado <strong>{waterUsed.toFixed(1)}</strong> litros</p>
           <div className="w-full h-4 rounded-full bg-gray-700 overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-500"
               style={{ width: `${Math.min((waterUsed / 10) * 100, 100)}%` }}
             />
           </div>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-gray-400 mt-2 text-center">
             Último registro: <strong>{lastWaterUsed.toFixed(1)}</strong> litros
           </p>
         </div>

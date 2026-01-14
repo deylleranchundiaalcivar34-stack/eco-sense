@@ -42,7 +42,7 @@ const Login = () => {
   return (
     <section className="min-h-screen flex flex-col items-center justify-start px-4 py-12 overflow-y-auto overflow-x-hidden bg-gray-900 text-white">
       
-      <div className="max-w-md mx-auto w-full p-8 bg-gray-800 rounded-2xl shadow-xl border border-primary/30 flex flex-col gap-6">
+      <div className="w-full max-w-md mx-auto p-8 bg-gray-800 rounded-2xl shadow-xl border border-primary/30 flex flex-col gap-6">
         <h2 className="text-3xl font-bold text-center text-primary">
           Panel de Control EcoSense
         </h2>
@@ -103,13 +103,13 @@ const Login = () => {
         </p>
       </div>
 
-              {/* Botón de retorno */}
-        <button
-          onClick={() => navigate("/")}
-          className="mt-8 px-6 py-3 rounded-lg font-semibold bg-primary text-white hover:bg-primary/90 transition-colors"
-        >
-          ← Volver al inicio
-        </button>
+      {/* Botón de retorno */}
+      <button
+        onClick={() => navigate("/")}
+        className="mt-8 px-6 py-3 rounded-lg font-semibold bg-primary text-white hover:bg-primary/90 transition-colors"
+      >
+        ← Volver al inicio
+      </button>
     </section>
   );
 };
