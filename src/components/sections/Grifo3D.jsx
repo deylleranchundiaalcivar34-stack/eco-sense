@@ -13,8 +13,7 @@ import {
   Cpu,
   BarChart,
 } from "lucide-react";
-import { auth, provider, signInWithGoogle } from "@/lib/firebase";
-import { signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { auth, signInWithEmail } from "@/lib/firebase"; // función para login con email
 
 const Grifo3D = () => {
   const [isDark, setIsDark] = useState(false);
@@ -42,33 +41,13 @@ const Grifo3D = () => {
     return () => document.body.removeChild(script);
   }, []);
 
-  // Función de login universal (PC y móvil)
-  const handleLogin = async () => {
-    try {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-      let user = null;
-
-      if (isMobile) {
-        // Móvil: redirect
-        await signInWithRedirect(auth, provider);
-        const result = await getRedirectResult(auth);
-        user = result?.user || null;
-      } else {
-        // PC: popup
-        user = await signInWithGoogle();
-      }
-
-      if (user) navigate("/panel");
-      else alert("No se pudo iniciar sesión. Intenta nuevamente.");
-    } catch (err) {
-      console.error(err);
-      alert("Error al iniciar sesión. Revisa la consola.");
-    }
+  // Redirigir al Login para Panel de Control
+  const goToPanel = () => {
+    navigate("/login");
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-12">
+    <section id="grifo3d" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-12">
       {/* Fondo adaptado al theme */}
       <div
         className={`absolute inset-0 transition-colors duration-500 ${
@@ -94,50 +73,41 @@ const Grifo3D = () => {
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {/* Card 1 */}
           <FeatureCard icon={Code} title="Tecnología Inteligente">
             Sensor de flujo, electroválvula controlada por ESP32 y registro en
             tiempo real.
           </FeatureCard>
 
-          {/* Card 2 */}
           <FeatureCard icon={User} title="Ahorro y Sostenibilidad">
             Optimiza el consumo de agua y evita desperdicios.
           </FeatureCard>
 
-          {/* Card 3 */}
           <FeatureCard icon={Briefcase} title="Diseño Moderno">
             Instalación simple y estética moderna que se adapta a cualquier
             espacio.
           </FeatureCard>
 
-          {/* Card 4 */}
           <FeatureCard icon={Activity} title="Control Manual">
             Posibilidad de activar y desactivar manualmente cuando sea necesario.
           </FeatureCard>
 
-          {/* Card 5 */}
           <FeatureCard icon={Zap} title="Monitoreo en Tiempo Real">
             Observa el flujo y consumo de agua directamente desde la app o web.
           </FeatureCard>
 
-          {/* Card 6 */}
           <FeatureCard icon={Globe} title="Conectividad Global">
             Conexión estable vía internet para controlar el grifo desde cualquier
             lugar.
           </FeatureCard>
 
-          {/* Card 7 */}
           <FeatureCard icon={Shield} title="Seguridad Garantizada">
             Evita accidentes y control de flujo seguro para niños y mascotas.
           </FeatureCard>
 
-          {/* Card 8 */}
           <FeatureCard icon={Cpu} title="Actualizaciones Firmware">
             El grifo se mantiene actualizado con nuevas funciones y mejoras.
           </FeatureCard>
 
-          {/* Card 9 */}
           <FeatureCard icon={BarChart} title="Estadísticas Detalladas">
             Visualiza consumo diario, semanal y mensual para un control eficiente.
           </FeatureCard>
@@ -145,22 +115,7 @@ const Grifo3D = () => {
 
         {/* BOTÓN PANEL DE CONTROL */}
         <div className="flex flex-col sm:flex-row gap-4 pt-12 justify-center">
-          <button className="cosmic-button"
-            onClick={async () => {
-              try {
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                if (isMobile) {
-                  await signInWithRedirect(auth, provider); // redirige al login
-                } else {
-                  const user = await signInWithGoogle();
-                  if (user) navigate("/panel");
-                }
-              } catch (err) {
-                console.error(err);
-                alert("Error al iniciar sesión.");
-              }
-            }}
-          >
+          <button className="cosmic-button" onClick={goToPanel}>
             Panel de Control
           </button>
         </div>
@@ -169,7 +124,6 @@ const Grifo3D = () => {
   );
 };
 
-// Componente reutilizable para las cards
 const FeatureCard = ({ icon: Icon, title, children }) => (
   <div className="gradient-border p-6 card-hover">
     <div className="flex items-start gap-4">
