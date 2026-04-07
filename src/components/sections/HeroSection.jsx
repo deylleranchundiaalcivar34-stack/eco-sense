@@ -11,12 +11,9 @@ const HeroSection = () => {
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
             <span className="opacity-0 animate-fade-in">Grifo</span>
             <span className="text-primary opacity-0 animate-fade-in-delay-1"> Inteligente </span>
-            <span className="text-gradient opacity-0 animate-fade-in-delay-2">EcoSense</span>
+            <span className="text-gradient opacity-0 animate-fade-in-delay-2">EcoTech</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground opacity-0 animate-fade-in-delay-3">
-            Controla y optimiza el uso del agua desde tu web o tu celular de forma fácil e intuitiva.
-          </p>
 
           <div className="flex justify-center space-x-4 mt-6 opacity-0 animate-fade-in-delay-4">
             <a
